@@ -189,26 +189,39 @@
         </div>
     </main>
 
+    <!-- Floating Action Bar untuk Bulk Delete -->
+    <div id="selectionBar" class="fixed bottom-0 left-0 right-0 bg-[#0f172a]/95 backdrop-blur-md border-t border-red-500/50 p-4 transform translate-y-full transition-transform duration-300 z-[60] flex justify-center items-center shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+        <div class="flex items-center gap-6 max-w-4xl w-full justify-between px-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-red-500/20 text-red-400 h-10 w-10 rounded-full flex items-center justify-center font-bold text-lg border border-red-500/30" id="selCount">0</div>
+                <div class="text-gray-300 font-medium hidden sm:block">Nilai Terpilih</div>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="clearSelection()" class="px-5 py-2.5 rounded-lg border border-white/20 text-gray-300 hover:bg-white/5 font-medium transition-all">Batal</button>
+                <button onclick="openBulkDeleteModal()" class="px-5 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold transition-all shadow-[0_0_15px_rgba(220,38,38,0.5)] flex items-center gap-2">
+                    <i class="fa-solid fa-trash-can"></i> Hapus Terpilih
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Konfirmasi Hapus Nilai -->
     <div id="deleteModal" class="fixed inset-0 bg-darkBg/80 backdrop-blur-sm z-[300] hidden items-center justify-center transition-all duration-300 opacity-0">
-        <div class="bg-[#1e293b] border border-white/10 rounded-2xl w-full max-w-md shadow-2xl p-6 m-4 transform scale-95 transition-transform duration-300" id="deleteModalBox">
-            <div class="flex items-center gap-4 text-red-400 mb-4">
+        <div class="bg-[#1e293b] border border-white/10 rounded-2xl w-full max-w-md shadow-2xl p-6 m-4 transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]" id="deleteModalBox">
+            <div class="flex items-center gap-4 text-red-400 mb-4 shrink-0">
                 <div class="bg-red-500/20 p-3 rounded-full"><i class="fa-solid fa-triangle-exclamation text-2xl"></i></div>
-                <h3 class="text-xl font-bold text-white">Konfirmasi Hapus</h3>
+                <h3 class="text-xl font-bold text-white">Konfirmasi Hapus Masal</h3>
             </div>
-            <p class="text-gray-300 text-sm mb-6">Apakah Anda yakin ingin menghapus nilai ini? Rata-rata akan dikalkulasi ulang secara otomatis.</p>
+            <p class="text-gray-300 text-sm mb-4 shrink-0">Anda akan menghapus <span id="delModalCount" class="font-bold text-white">0</span> nilai dari siswa <span id="delModalNama" class="font-bold text-white"></span>. Rata-rata akan dikalkulasi ulang secara otomatis.</p>
             
-            <div class="bg-[#0f172a] rounded-xl border border-white/5 p-4 mb-6 space-y-2 text-sm">
-                <div class="flex justify-between"><span class="text-gray-500">Siswa:</span> <span class="font-semibold text-white text-right" id="delModalNama"></span></div>
-                <div class="flex justify-between"><span class="text-gray-500">Mata Pelajaran:</span> <span class="font-semibold text-white text-right" id="delModalMapel"></span></div>
-                <div class="flex justify-between"><span class="text-gray-500">Semester:</span> <span class="font-semibold text-white text-right" id="delModalSemester"></span></div>
-                <div class="flex justify-between border-t border-white/10 pt-2 mt-2"><span class="text-gray-500">Nilai:</span> <span class="font-bold text-red-400 text-lg" id="delModalNilai"></span></div>
+            <div class="bg-[#0f172a] rounded-xl border border-white/5 p-4 mb-6 overflow-y-auto custom-scrollbar flex-1 min-h-[100px]" id="delModalList">
+                <!-- List mapel yang akan dihapus akan di-render di sini -->
             </div>
 
-            <div class="flex gap-3">
+            <div class="flex gap-3 shrink-0">
                 <button onclick="closeDeleteModal()" class="flex-1 px-4 py-2.5 rounded-lg border border-white/20 text-gray-300 hover:bg-white/5 font-medium transition-all">Batal</button>
                 <button id="btnConfirmDelete" onclick="executeDelete()" class="flex-1 px-4 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold transition-all shadow-lg flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-trash-can"></i> Hapus Nilai
+                    <i class="fa-solid fa-trash-can"></i> Hapus Permanen
                 </button>
             </div>
         </div>
@@ -235,7 +248,7 @@
         let activeStudentView = SISWA[0];
         let parsedValues = [];
         let charts = { siswa: null, mapel: null };
-        let deletePayload = null; // Menyimpan data nilai yang akan dihapus
+        let selectedForDelete = []; // Menyimpan array nilai yang di-select untuk dihapus masal
 
         document.addEventListener('DOMContentLoaded', () => {
             const inputNama = document.getElementById('inputNama');
@@ -274,6 +287,7 @@
         }
 
         function loadStudentView(nama) {
+            clearSelection(); // Reset seleksi masal saat ganti tab siswa
             activeStudentView = nama;
             
             // Update Pills UI
@@ -408,14 +422,18 @@
         function getCellRenderer(val, key, mapelName) {
             if (val === "" || val === "-" || val === null) return `<div class="text-gray-600">-</div>`;
             let color = Number(val) < 60 ? "text-red-400 font-bold" : "text-gray-200";
-            // Tombol Delete muncul saat di-hover (desktop) atau selalu terlihat (mobile)
+            let safeMapel = mapelName.replace(/'/g, "\\'");
+            
+            // Cek apakah item ini sedang terpilih di array selectedForDelete
+            let isChecked = selectedForDelete.some(item => item.mapel === mapelName && item.kolomKey === key);
+            let activeClass = isChecked ? 'bg-red-900/40 border-red-500/50' : 'border-transparent hover:bg-white/10';
+
+            // Checkbox UI interaktif (seluruh area cell dapat di-klik untuk toggle centang)
             return `
-            <div class="flex items-center justify-center gap-1.5 group/cell relative">
-                <span class="${color}">${val}</span>
-                <button onclick="openDeleteModal('${activeStudentView}', '${mapelName.replace(/'/g, "\\'")}', '${key}', '${val}')"
-                        class="md:opacity-0 md:group-hover/cell:opacity-100 opacity-100 transition-opacity text-red-500 hover:text-red-400 focus:opacity-100 p-1" title="Hapus Nilai">
-                    <i class="fa-solid fa-trash-can text-[10px]"></i>
-                </button>
+            <div onclick="toggleSelectDelete('${safeMapel}', '${key}', '${val}')" 
+                 class="flex items-center justify-center gap-2 p-1.5 rounded border transition-colors cursor-pointer ${activeClass}" title="Klik untuk memilih">
+                <input type="checkbox" class="w-3.5 h-3.5 accent-red-500 pointer-events-none" ${isChecked ? 'checked' : ''}>
+                <span class="${color} select-none pointer-events-none">${val}</span>
             </div>`;
         }
 
@@ -445,13 +463,55 @@
             tbody.innerHTML = html;
         }
 
-        // --- Logika Hapus Nilai --- //
-        function openDeleteModal(nama, mapel, key, nilai) {
-            deletePayload = { action: 'delete', nama: nama, mapel: mapel, kolomKey: key };
-            document.getElementById('delModalNama').innerText = nama;
-            document.getElementById('delModalMapel').innerText = mapel;
-            document.getElementById('delModalSemester').innerText = LABEL_MAP[key];
-            document.getElementById('delModalNilai').innerText = nilai;
+        // --- Logika Seleksi & Hapus Masal --- //
+        
+        function toggleSelectDelete(mapel, key, nilai) {
+            const index = selectedForDelete.findIndex(i => i.mapel === mapel && i.kolomKey === key);
+            
+            // Toggle array
+            if(index > -1) selectedForDelete.splice(index, 1);
+            else selectedForDelete.push({ mapel: mapel, kolomKey: key, nilai: nilai, label: LABEL_MAP[key] });
+            
+            // Render ulang tabel untuk meng-update style checkbox (instant cache render)
+            renderTable(globalData[activeStudentView]);
+            updateSelectionBar();
+        }
+
+        function clearSelection() {
+            selectedForDelete = [];
+            if(globalData[activeStudentView]) renderTable(globalData[activeStudentView]);
+            updateSelectionBar();
+        }
+
+        function updateSelectionBar() {
+            const bar = document.getElementById('selectionBar');
+            if(selectedForDelete.length > 0) {
+                bar.classList.remove('translate-y-full');
+                document.getElementById('selCount').innerText = selectedForDelete.length;
+            } else {
+                bar.classList.add('translate-y-full');
+            }
+        }
+
+        function openBulkDeleteModal() {
+            if(selectedForDelete.length === 0) return;
+            
+            document.getElementById('delModalNama').innerText = activeStudentView;
+            document.getElementById('delModalCount').innerText = selectedForDelete.length;
+            
+            // Generate list preview item yang akan dihapus
+            let listHtml = '';
+            selectedForDelete.forEach(item => {
+                listHtml += `
+                <div class="flex justify-between items-center border-b border-white/5 py-2.5 last:border-0">
+                    <div class="flex flex-col">
+                        <span class="text-white text-xs font-semibold">${item.mapel}</span>
+                        <span class="text-gray-500 text-[10px]">${item.label}</span>
+                    </div>
+                    <span class="text-red-400 font-bold bg-red-500/10 px-2 py-0.5 rounded">${item.nilai}</span>
+                </div>`;
+            });
+            document.getElementById('delModalList').innerHTML = listHtml;
 
             const m = document.getElementById('deleteModal');
             const box = document.getElementById('deleteModalBox');
@@ -470,11 +530,17 @@
             box.classList.remove('scale-100');
             box.classList.add('scale-95');
             setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 300);
-            deletePayload = null;
         }
 
         async function executeDelete() {
-            if(!deletePayload) return;
+            if(selectedForDelete.length === 0) return;
+
+            const payload = {
+                action: 'delete_bulk',
+                nama: activeStudentView,
+                items: selectedForDelete.map(i => ({ mapel: i.mapel, kolomKey: i.kolomKey }))
+            };
+
             const btn = document.getElementById('btnConfirmDelete');
             const ogHtml = btn.innerHTML;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menghapus...';
@@ -484,12 +550,13 @@
                 const res = await fetch(SCRIPT_URL, { 
                     method: 'POST', 
                     headers: { "Content-Type": "text/plain;charset=utf-8" }, 
-                    body: JSON.stringify(deletePayload) 
+                    body: JSON.stringify(payload) 
                 });
                 const json = await res.json();
                 if(json.success) {
                     showToast(json.message, "success");
                     closeDeleteModal();
+                    clearSelection();
                     await fetchData(); // Fetch ulang untuk mereset tabel, rata-rata, dan charts
                 } else throw new Error(json.message);
             } catch (err) { showToast(err.message, "error"); } 
