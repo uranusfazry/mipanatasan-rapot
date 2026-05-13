@@ -189,6 +189,31 @@
         </div>
     </main>
 
+    <!-- Modal Konfirmasi Hapus Nilai -->
+    <div id="deleteModal" class="fixed inset-0 bg-darkBg/80 backdrop-blur-sm z-[300] hidden items-center justify-center transition-all duration-300 opacity-0">
+        <div class="bg-[#1e293b] border border-white/10 rounded-2xl w-full max-w-md shadow-2xl p-6 m-4 transform scale-95 transition-transform duration-300" id="deleteModalBox">
+            <div class="flex items-center gap-4 text-red-400 mb-4">
+                <div class="bg-red-500/20 p-3 rounded-full"><i class="fa-solid fa-triangle-exclamation text-2xl"></i></div>
+                <h3 class="text-xl font-bold text-white">Konfirmasi Hapus</h3>
+            </div>
+            <p class="text-gray-300 text-sm mb-6">Apakah Anda yakin ingin menghapus nilai ini? Rata-rata akan dikalkulasi ulang secara otomatis.</p>
+            
+            <div class="bg-[#0f172a] rounded-xl border border-white/5 p-4 mb-6 space-y-2 text-sm">
+                <div class="flex justify-between"><span class="text-gray-500">Siswa:</span> <span class="font-semibold text-white text-right" id="delModalNama"></span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Mata Pelajaran:</span> <span class="font-semibold text-white text-right" id="delModalMapel"></span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Semester:</span> <span class="font-semibold text-white text-right" id="delModalSemester"></span></div>
+                <div class="flex justify-between border-t border-white/10 pt-2 mt-2"><span class="text-gray-500">Nilai:</span> <span class="font-bold text-red-400 text-lg" id="delModalNilai"></span></div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="closeDeleteModal()" class="flex-1 px-4 py-2.5 rounded-lg border border-white/20 text-gray-300 hover:bg-white/5 font-medium transition-all">Batal</button>
+                <button id="btnConfirmDelete" onclick="executeDelete()" class="flex-1 px-4 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold transition-all shadow-lg flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-trash-can"></i> Hapus Nilai
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="loadingOverlay" class="fixed inset-0 bg-darkBg/90 backdrop-blur-md z-[100] hidden flex-col items-center justify-center transition-opacity">
         <div class="w-16 h-16 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mb-4"></div>
         <p class="text-brand-300 font-medium text-lg animate-pulse">Menghubungkan ke Google Sheets...</p>
@@ -203,12 +228,14 @@
         
         const SISWA = ["Adit Firmansyah", "Bilkis Cahya Nur Huda", "Fitri Reviani", "Fitri Yulianti", "Galang Rambu Anarkhi", "Muhammad Fajar Sidik", "Raffa Ardiansyah Dwi Putra", "Reza Nur Alamsyah", "Rival Andhika Putra", "Satria Permana", "Yesy Fuadah"];
         const MAPEL_WAJIB = ["Al Qur'an Hadis", "Akidah Akhlak", "Fikih", "Sejarah Kebudayaan Islam", "Bahasa Arab", "Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "Ilmu Pengetahuan Alam dan Sosial", "Pendidikan Jasmani, Olahraga dan Kesehatan", "Seni Budaya dan Prakarya", "Bahasa Inggris", "Bahasa Sunda"];
+        const LABEL_MAP = { k4s1: "Kelas 4 Semester 1", k4s2: "Kelas 4 Semester 2", k5s1: "Kelas 5 Semester 1", k5s2: "Kelas 5 Semester 2", k6s1: "Kelas 6 Semester 1" };
 
-        let globalData = {}; // Object untuk menampung array per siswa
+        let globalData = {}; 
         let globalStats = null;
         let activeStudentView = SISWA[0];
         let parsedValues = [];
         let charts = { siswa: null, mapel: null };
+        let deletePayload = null; // Menyimpan data nilai yang akan dihapus
 
         document.addEventListener('DOMContentLoaded', () => {
             const inputNama = document.getElementById('inputNama');
@@ -338,7 +365,7 @@
                 const res = await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify({records: payload}) });
                 const json = await res.json();
                 if(json.success) { 
-                    showToast(`Data tersimpan ke sheet ${nama}`, "success"); 
+                    showToast(json.message, "success"); 
                     document.getElementById('formInput').reset(); 
                     document.getElementById('inputNilaiMassal').value = '';
                     handleMassalParsing({target:{value:''}}); 
@@ -377,14 +404,26 @@
         }
 
         function formatVal(val) { return (val === "" || val === null) ? "-" : val; }
-        function getColor(val) { if(val === "" || val === null || val === "-") return "text-gray-600"; return Number(val) < 60 ? "text-red-400 font-bold" : "text-gray-200"; }
+        
+        function getCellRenderer(val, key, mapelName) {
+            if (val === "" || val === "-" || val === null) return `<div class="text-gray-600">-</div>`;
+            let color = Number(val) < 60 ? "text-red-400 font-bold" : "text-gray-200";
+            // Tombol Delete muncul saat di-hover (desktop) atau selalu terlihat (mobile)
+            return `
+            <div class="flex items-center justify-center gap-1.5 group/cell relative">
+                <span class="${color}">${val}</span>
+                <button onclick="openDeleteModal('${activeStudentView}', '${mapelName.replace(/'/g, "\\'")}', '${key}', '${val}')"
+                        class="md:opacity-0 md:group-hover/cell:opacity-100 opacity-100 transition-opacity text-red-500 hover:text-red-400 focus:opacity-100 p-1" title="Hapus Nilai">
+                    <i class="fa-solid fa-trash-can text-[10px]"></i>
+                </button>
+            </div>`;
+        }
 
         function renderTable(dataArray) {
             const tbody = document.getElementById('tableBody'); 
             let html = '';
             
             dataArray.forEach((r) => {
-                const c = (v) => getColor(v);
                 const f = (v) => formatVal(v);
                 
                 html += `
@@ -392,19 +431,71 @@
                     <td class="p-3 text-center text-gray-500">${r.no}</td>
                     <td class="p-3 sticky-col text-brand-400 text-xs font-medium truncate max-w-[250px] group-hover:text-brand-300" title="${r.mapel}">${r.mapel}</td>
                     
-                    <td class="p-3 text-center border-l border-white/5 bg-green-900/10 group-hover:bg-green-900/20 ${c(r.k4s1)}">${f(r.k4s1)}</td>
-                    <td class="p-3 text-center bg-green-900/10 group-hover:bg-green-900/20 ${c(r.k4s2)}">${f(r.k4s2)}</td>
+                    <td class="p-3 text-center border-l border-white/5 bg-green-900/10 group-hover:bg-green-900/20">${getCellRenderer(r.k4s1, 'k4s1', r.mapel)}</td>
+                    <td class="p-3 text-center bg-green-900/10 group-hover:bg-green-900/20">${getCellRenderer(r.k4s2, 'k4s2', r.mapel)}</td>
                     
-                    <td class="p-3 text-center border-l border-white/5 bg-orange-900/10 group-hover:bg-orange-900/20 ${c(r.k5s1)}">${f(r.k5s1)}</td>
-                    <td class="p-3 text-center bg-orange-900/10 group-hover:bg-orange-900/20 ${c(r.k5s2)}">${f(r.k5s2)}</td>
+                    <td class="p-3 text-center border-l border-white/5 bg-orange-900/10 group-hover:bg-orange-900/20">${getCellRenderer(r.k5s1, 'k5s1', r.mapel)}</td>
+                    <td class="p-3 text-center bg-orange-900/10 group-hover:bg-orange-900/20">${getCellRenderer(r.k5s2, 'k5s2', r.mapel)}</td>
                     
-                    <td class="p-3 text-center border-l border-white/5 bg-purple-900/10 group-hover:bg-purple-900/20 ${c(r.k6s1)}">${f(r.k6s1)}</td>
+                    <td class="p-3 text-center border-l border-white/5 bg-purple-900/10 group-hover:bg-purple-900/20">${getCellRenderer(r.k6s1, 'k6s1', r.mapel)}</td>
                     
                     <td class="p-3 text-center border-l border-white/5 bg-[#082f49] text-brand-300 font-bold ${r.rata>0 && r.rata<60?'text-red-500':''}">${f(r.rata)}</td>
                 </tr>`;
             });
             tbody.innerHTML = html;
         }
+
+        // --- Logika Hapus Nilai --- //
+        function openDeleteModal(nama, mapel, key, nilai) {
+            deletePayload = { action: 'delete', nama: nama, mapel: mapel, kolomKey: key };
+            document.getElementById('delModalNama').innerText = nama;
+            document.getElementById('delModalMapel').innerText = mapel;
+            document.getElementById('delModalSemester').innerText = LABEL_MAP[key];
+            document.getElementById('delModalNilai').innerText = nilai;
+
+            const m = document.getElementById('deleteModal');
+            const box = document.getElementById('deleteModalBox');
+            m.classList.remove('hidden');
+            void m.offsetWidth; // Trigger reflow
+            m.classList.remove('opacity-0');
+            m.classList.add('flex');
+            box.classList.remove('scale-95');
+            box.classList.add('scale-100');
+        }
+
+        function closeDeleteModal() {
+            const m = document.getElementById('deleteModal');
+            const box = document.getElementById('deleteModalBox');
+            m.classList.add('opacity-0');
+            box.classList.remove('scale-100');
+            box.classList.add('scale-95');
+            setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 300);
+            deletePayload = null;
+        }
+
+        async function executeDelete() {
+            if(!deletePayload) return;
+            const btn = document.getElementById('btnConfirmDelete');
+            const ogHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menghapus...';
+            btn.disabled = true; btn.classList.add('opacity-70');
+
+            try {
+                const res = await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    headers: { "Content-Type": "text/plain;charset=utf-8" }, 
+                    body: JSON.stringify(deletePayload) 
+                });
+                const json = await res.json();
+                if(json.success) {
+                    showToast(json.message, "success");
+                    closeDeleteModal();
+                    await fetchData(); // Fetch ulang untuk mereset tabel, rata-rata, dan charts
+                } else throw new Error(json.message);
+            } catch (err) { showToast(err.message, "error"); } 
+            finally { btn.innerHTML = ogHtml; btn.disabled = false; btn.classList.remove('opacity-70'); }
+        }
+        // ------------------------ //
 
         function updateDashboardStats(s) {
             document.getElementById('statTotalSiswa').innerText = s.totalSiswa || 0; 
