@@ -116,8 +116,9 @@
                                     <label class="block text-xs font-medium text-gray-400 mb-1">Pilih Kelas</label>
                                     <select id="inputKelas" required onchange="handleKelasChange()" class="w-full bg-darkBg/50 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand-500 appearance-none">
                                         <option value="" disabled selected>-- Pilih --</option>
-                                        <option value="Kelas 3">Kelas 3</option><option value="Kelas 4">Kelas 4</option>
-                                        <option value="Kelas 5">Kelas 5</option><option value="Kelas 6">Kelas 6</option>
+                                        <option value="Kelas 4">Kelas 4</option>
+                                        <option value="Kelas 5">Kelas 5</option>
+                                        <option value="Kelas 6">Kelas 6</option>
                                     </select>
                                 </div>
                                 <div class="md:col-span-2">
@@ -161,9 +162,6 @@
                                 <tr class="text-xs uppercase tracking-wider text-gray-300">
                                     <th class="p-3 bg-[#0f172a] sticky-col-1 w-[160px]">Nama Siswa</th>
                                     <th class="p-3 bg-[#0f172a] sticky-col-2 w-[200px]">Mata Pelajaran</th>
-                                    
-                                    <th class="p-3 text-center bg-blue-900/60 border-l border-white/10">Kls 3 (S1)</th>
-                                    <th class="p-3 text-center bg-blue-900/60">Kls 3 (S2)</th>
                                     
                                     <th class="p-3 text-center bg-green-900/60 border-l border-white/10">Kls 4 (S1)</th>
                                     <th class="p-3 text-center bg-green-900/60">Kls 4 (S2)</th>
@@ -319,9 +317,6 @@
                     <td class="p-3 sticky-col-1 text-gray-300 font-medium truncate max-w-[160px]" title="${r.nama}">${r.nama}</td>
                     <td class="p-3 sticky-col-2 text-brand-400 text-xs truncate max-w-[200px]" title="${r.mapel}">${r.mapel}</td>
                     
-                    <td class="p-3 text-center border-l border-white/5 bg-blue-900/10 group-hover:bg-blue-900/20 ${c(r.k3s1)}">${f(r.k3s1)}</td>
-                    <td class="p-3 text-center bg-blue-900/10 group-hover:bg-blue-900/20 ${c(r.k3s2)}">${f(r.k3s2)}</td>
-                    
                     <td class="p-3 text-center border-l border-white/5 bg-green-900/10 group-hover:bg-green-900/20 ${c(r.k4s1)}">${f(r.k4s1)}</td>
                     <td class="p-3 text-center bg-green-900/10 group-hover:bg-green-900/20 ${c(r.k4s2)}">${f(r.k4s2)}</td>
                     
@@ -358,9 +353,9 @@
 
         function exportExcel() {
             if(!appData.length) return showToast("Data kosong", "info");
-            const d = appData.map(i => ({ "Nama Siswa": i.nama, "Mata Pelajaran": i.mapel, "Kelas 3 S1": i.k3s1, "Kelas 3 S2": i.k3s2, "Kelas 4 S1": i.k4s1, "Kelas 4 S2": i.k4s2, "Kelas 5 S1": i.k5s1, "Kelas 5 S2": i.k5s2, "Kelas 6 S1": i.k6s1, "Rata-rata": i.rata }));
+            const d = appData.map(i => ({ "Nama Siswa": i.nama, "Mata Pelajaran": i.mapel, "Kelas 4 S1": i.k4s1, "Kelas 4 S2": i.k4s2, "Kelas 5 S1": i.k5s1, "Kelas 5 S2": i.k5s2, "Kelas 6 S1": i.k6s1, "Rata-rata": i.rata }));
             const ws = XLSX.utils.json_to_sheet(d), wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Matrix Rapot");
-            ws['!cols'] = [{wch: 25}, {wch: 35}, {wch: 12},{wch: 12},{wch: 12},{wch: 12},{wch: 12},{wch: 12},{wch: 12}, {wch: 15}];
+            ws['!cols'] = [{wch: 25}, {wch: 35}, {wch: 12},{wch: 12},{wch: 12},{wch: 12},{wch: 12}, {wch: 15}];
             XLSX.writeFile(wb, `Rapot_MultiTahun_${Date.now()}.xlsx`);
         }
     </script>
