@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduAdmin | Sistem Nilai Massal</title>
+    <title>EduAdmin | Sistem Rapot Digital</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -33,30 +33,18 @@
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
         ::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #6366f1; }
-        
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
         .toast { animation: slideIn 0.3s ease forwards; }
         .toast.hide { animation: slideOut 0.3s ease forwards; }
-        
         .loader { border: 3px solid rgba(255,255,255,0.1); border-left-color: #6366f1; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        @media print {
-            body { background: white; color: black; }
-            .no-print { display: none !important; }
-            .glass-panel { background: white; border: 1px solid #ccc; box-shadow: none; color: black; break-inside: avoid;}
-            canvas { filter: invert(100%); }
-            * { text-shadow: none !important; }
-        }
     </style>
 </head>
 
 <body class="antialiased flex h-screen overflow-hidden text-sm md:text-base">
 
-    <!-- Sidebar -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 glass-panel transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col no-print border-r border-white/10">
         <div class="flex items-center justify-between p-6 border-b border-white/10">
             <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-500 to-purple-400">
@@ -71,21 +59,20 @@
                 <i class="fa-solid fa-chart-pie w-5"></i> Dashboard
             </a>
             <a href="#" onclick="switchTab('input')" id="nav-input" class="flex items-center gap-3 w-full p-3 rounded-lg text-gray-300 hover:bg-white/5 hover:text-white transition-all">
-                <i class="fa-solid fa-bolt w-5"></i> Input Massal
+                <i class="fa-solid fa-bolt w-5"></i> Input Rapot
             </a>
             <a href="#" onclick="switchTab('data')" id="nav-data" class="flex items-center gap-3 w-full p-3 rounded-lg text-gray-300 hover:bg-white/5 hover:text-white transition-all">
-                <i class="fa-solid fa-table w-5"></i> Data Nilai
+                <i class="fa-solid fa-table w-5"></i> Data Rapot
             </a>
         </nav>
     </aside>
 
-    <!-- Main Content -->
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
         <header class="h-16 glass-panel border-b border-white/10 flex items-center justify-between px-6 no-print rounded-none">
             <button id="openSidebar" class="md:hidden text-gray-300 hover:text-white"><i class="fa-solid fa-bars text-xl"></i></button>
             <div class="flex items-center gap-4 ml-auto">
                 <div class="hidden sm:flex items-center gap-2 text-sm text-gray-300 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
-                    <span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]"></span> Live Sync
+                    <span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]"></span> Live Sync (Upsert)
                 </div>
                 <button onclick="fetchData()" class="p-2 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 transition" title="Refresh Data">
                     <i class="fa-solid fa-rotate-right"></i>
@@ -95,16 +82,14 @@
 
         <div class="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth">
             
-            <!-- TAB: DASHBOARD -->
             <section id="tab-dashboard" class="space-y-6">
-                <!-- Sama seperti sebelumnya -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="glass-panel p-5 rounded-xl border-t-4 border-t-blue-500">
-                        <p class="text-gray-400 text-sm font-medium">Total Data Diinput</p>
+                        <p class="text-gray-400 text-sm font-medium">Total Record Disimpan</p>
                         <h3 class="text-3xl font-bold mt-2" id="statTotalData">0</h3>
                     </div>
                     <div class="glass-panel p-5 rounded-xl border-t-4 border-t-green-500">
-                        <p class="text-gray-400 text-sm font-medium">Rata-rata Global</p>
+                        <p class="text-gray-400 text-sm font-medium">Rata-rata Global (Semua)</p>
                         <h3 class="text-3xl font-bold mt-2" id="statRataGlobal">0.00</h3>
                     </div>
                     <div class="glass-panel p-5 rounded-xl border-t-4 border-t-purple-500">
@@ -118,7 +103,7 @@
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="glass-panel p-5 rounded-xl flex flex-col h-[400px]">
-                        <h3 class="text-lg font-semibold mb-4"><i class="fa-solid fa-chart-column mr-2 text-blue-400"></i>Rata-rata per Siswa</h3>
+                        <h3 class="text-lg font-semibold mb-4"><i class="fa-solid fa-chart-column mr-2 text-blue-400"></i>Nilai Rata-rata per Siswa</h3>
                         <div class="flex-1 relative w-full"><canvas id="chartSiswa"></canvas></div>
                     </div>
                     <div class="glass-panel p-5 rounded-xl flex flex-col h-[400px]">
@@ -128,7 +113,6 @@
                 </div>
             </section>
 
-            <!-- TAB: INPUT NILAI MASSAL -->
             <section id="tab-input" class="hidden max-w-6xl mx-auto w-full">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     
@@ -136,15 +120,13 @@
                     <div class="lg:col-span-7 glass-panel rounded-2xl p-6 relative overflow-hidden">
                         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-500 to-purple-500"></div>
                         <div class="flex justify-between items-center mb-6">
-                            <h2 class="text-2xl font-bold">Input Massal (Rapot)</h2>
+                            <h2 class="text-2xl font-bold">Input Rapot Batch</h2>
                             <button onclick="resetForm()" class="text-sm text-gray-400 hover:text-red-400 transition">
                                 <i class="fa-solid fa-rotate-left mr-1"></i>Reset
                             </button>
                         </div>
                         
                         <form id="formInput" onsubmit="submitForm(event)" class="space-y-5">
-                            
-                            <!-- Profiling -->
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div class="md:col-span-3">
                                     <label class="block text-sm font-medium text-gray-300 mb-1">Nama Siswa <span class="text-red-400">*</span></label>
@@ -172,11 +154,10 @@
 
                             <hr class="border-white/10 my-4">
 
-                            <!-- Textarea Nilai -->
                             <div>
                                 <div class="flex justify-between items-end mb-2">
-                                    <label class="block text-sm font-medium text-gray-300">Format Nilai (pisahkan dengan koma) <span class="text-red-400">*</span></label>
-                                    <span class="text-xs text-gray-400 bg-white/5 px-2 py-1 rounded">Cth: 77, 80, 79, ...</span>
+                                    <label class="block text-sm font-medium text-gray-300">Format Nilai (pisahkan koma) <span class="text-red-400">*</span></label>
+                                    <span class="text-xs text-gray-400 bg-white/5 px-2 py-1 rounded">Cth: 77, 80, 79</span>
                                 </div>
                                 <textarea id="inputNilaiMassal" rows="4" required placeholder="Contoh: 77, 77, 79, 80, 78, 84, 79, 80, 81, 80, 79, 85, 88" 
                                     class="w-full bg-darkBg/50 border border-white/10 rounded-lg px-4 py-3 text-white font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all"></textarea>
@@ -184,39 +165,36 @@
 
                             <div class="pt-2">
                                 <button type="submit" id="btnSubmit" class="w-full bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white font-semibold py-3.5 px-8 rounded-lg shadow-lg hover:shadow-brand-500/30 transition-all flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-cloud-arrow-up"></i> Simpan Rapot Massal
+                                    <i class="fa-solid fa-cloud-arrow-up"></i> Simpan ke Spreadsheet
                                 </button>
                             </div>
                         </form>
                     </div>
 
-                    <!-- Kanan: Preview Mapping -->
+                    <!-- Kanan: Preview -->
                     <div class="lg:col-span-5 glass-panel rounded-2xl p-6 relative flex flex-col">
                         <div class="flex justify-between items-center mb-4">
-                            <h3 class="font-bold text-lg text-brand-300"><i class="fa-solid fa-eye mr-2"></i>Live Preview</h3>
+                            <h3 class="font-bold text-lg text-brand-300"><i class="fa-solid fa-eye mr-2"></i>Live Preview Mapel</h3>
                             <div class="text-right text-xs bg-darkBg/50 px-3 py-1.5 rounded-full border border-white/10">
                                 <span id="countNilai" class="font-bold text-red-400 text-sm">0</span> <span class="text-gray-400">/ 13 Mapel</span>
                             </div>
                         </div>
-                        
                         <div class="bg-darkBg/30 rounded-lg border border-white/5 flex-1 p-2 overflow-y-auto custom-scrollbar" id="previewContainer">
-                            <!-- Preview Items Here -->
+                            <!-- JS akan merender ini -->
                         </div>
                     </div>
-
                 </div>
             </section>
 
-            <!-- TAB: DATA NILAI (Tetap Sama) -->
             <section id="tab-data" class="hidden space-y-4">
                 <div class="glass-panel p-5 rounded-xl flex flex-col md:flex-row gap-4 justify-between items-center no-print">
-                    <h2 class="text-xl font-bold whitespace-nowrap"><i class="fa-solid fa-database mr-2 text-brand-400"></i>Database Nilai</h2>
+                    <h2 class="text-xl font-bold whitespace-nowrap"><i class="fa-solid fa-database mr-2 text-brand-400"></i>Data Rapot (Horizontal)</h2>
                     <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
                         <div class="relative flex-1 md:w-64">
                             <i class="fa-solid fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                            <input type="text" id="searchData" onkeyup="filterTable()" placeholder="Cari nama / mapel..." class="w-full bg-darkBg/50 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                            <input type="text" id="searchData" onkeyup="filterTable()" placeholder="Cari siswa / mapel..." class="w-full bg-darkBg/50 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
                         </div>
-                        <button onclick="exportExcel()" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2"><i class="fa-solid fa-file-excel"></i> Export</button>
+                        <button onclick="exportExcel()" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
                     </div>
                 </div>
                 <div class="glass-panel rounded-xl overflow-hidden">
@@ -225,12 +203,13 @@
                             <thead>
                                 <tr class="bg-white/5 border-b border-white/10 text-sm font-semibold text-gray-300">
                                     <th class="p-4 w-16 text-center">No</th>
-                                    <th class="p-4">Waktu</th>
+                                    <th class="p-4">Terakhir Diupdate</th>
                                     <th class="p-4">Nama Siswa</th>
                                     <th class="p-4">Kelas</th>
-                                    <th class="p-4">Semester</th>
                                     <th class="p-4">Mata Pelajaran</th>
-                                    <th class="p-4 text-center">Nilai</th>
+                                    <th class="p-4 text-center border-l border-white/5 bg-blue-900/20 text-blue-300">Semester 1</th>
+                                    <th class="p-4 text-center bg-green-900/20 text-green-300">Semester 2</th>
+                                    <th class="p-4 text-center font-bold bg-purple-900/20 text-purple-300 border-l border-white/5">Rata-Rata</th>
                                 </tr>
                             </thead>
                             <tbody id="tableBody" class="text-sm divide-y divide-white/5"></tbody>
@@ -251,12 +230,11 @@
     <!-- Overlay & Toasts -->
     <div id="loadingOverlay" class="fixed inset-0 bg-darkBg/80 backdrop-blur-sm z-[100] hidden flex-col items-center justify-center transition-opacity duration-300">
         <div class="loader mb-4 w-12 h-12 border-4"></div>
-        <p class="text-brand-400 font-medium animate-pulse">Menghubungkan ke Server...</p>
+        <p class="text-brand-400 font-medium animate-pulse">Sinkronisasi Database...</p>
     </div>
     <div id="toastContainer" class="fixed bottom-6 right-6 z-[200] flex flex-col gap-3"></div>
 
     <script>
-        // --- KONFIGURASI SCRIPT URL ---
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyj0ak8R_EXOUMql4rDstg4QepH1GMwuwT7S4gqmroGACuoSsbqz5m4eU_MZL_IRhW2/exec";
         
         const SISWA = [
@@ -265,7 +243,6 @@
             "Reza Nur Alamsyah", "Rival Andhika Putra", "Satria Permana", "Yesy Fuadah"
         ];
 
-        // 13 Daftar Mata Pelajaran Wajib
         const MAPEL_WAJIB = [
             "Al Qur'an Hadis", "Akidah Akhlak", "Fikih", "Sejarah Kebudayaan Islam",
             "Bahasa Arab", "Pendidikan Pancasila", "Bahasa Indonesia", "Matematika",
@@ -275,19 +252,16 @@
 
         let appData = [], filteredData = [], currentPage = 1, rowsPerPage = 15;
         let charts = { siswa: null, mapel: null };
-        let parsedValues = []; // Menyimpan array nilai yang diketik
+        let parsedValues = [];
 
         document.addEventListener('DOMContentLoaded', () => {
             initSelectSiswa();
             initSidebar();
-            initPreviewList(); // Load list mapel kosong di awal
+            initPreviewList();
             fetchData();
-
-            // Realtime parsing textarea
             document.getElementById('inputNilaiMassal').addEventListener('input', handleMassalParsing);
         });
 
-        // --- CORE UI LOGIC ---
         function initSelectSiswa() {
             const select = document.getElementById('inputNama');
             SISWA.forEach(nama => select.appendChild(new Option(nama, nama)));
@@ -298,7 +272,7 @@
             const select = document.getElementById('inputSemester');
             select.innerHTML = '<option value="" disabled selected>-- Pilih Semester --</option>';
             if (!kelas) return;
-            const maxSem = (kelas === 'Kelas 6') ? 1 : 2;
+            const maxSem = (kelas === 'Kelas 6') ? 1 : 2; // Kelas 6 HANYA 1 semester
             for(let i=1; i<=maxSem; i++) select.appendChild(new Option(`Semester ${i}`, `Semester ${i}`));
         }
 
@@ -317,7 +291,6 @@
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
             const activeNav = document.getElementById(`nav-${tabId}`);
             activeNav.classList.add('bg-brand-600/30', 'text-brand-400', 'border', 'border-brand-500/30');
-            
             if(window.innerWidth < 768) document.getElementById('sidebar').classList.add('-translate-x-full');
             if(tabId === 'dashboard' && charts.siswa) { charts.siswa.resize(); charts.mapel.resize(); }
         }
@@ -333,36 +306,23 @@
             const toast = document.createElement('div');
             const colors = { success: 'border-green-500 text-green-400 bg-green-500/10', error: 'border-red-500 text-red-400 bg-red-500/10', info: 'border-blue-500 text-blue-400 bg-blue-500/10' };
             const icons = { success: 'fa-check-circle', error: 'fa-circle-xmark', info: 'fa-info-circle' };
-            
             toast.className = `toast glass-panel border-l-4 p-4 rounded shadow-xl flex items-center gap-3 w-80 ${colors[type]}`;
             toast.innerHTML = `<i class="fa-solid ${icons[type]} text-xl"></i> <p class="text-sm font-medium text-white">${message}</p>`;
             container.appendChild(toast);
             setTimeout(() => { toast.classList.add('hide'); setTimeout(() => toast.remove(), 300); }, 3500);
         }
 
-        // --- PREVIEW & PARSING MASSAL ---
         function handleMassalParsing(e) {
             let rawStr = e.target.value;
-            
-            // Trim spasi dan pisahkan dengan koma. (Mencegah input kosong masuk sebagai array index)
-            if(rawStr.trim() === "") {
-                parsedValues = [];
-            } else {
-                parsedValues = rawStr.split(',').map(v => v.trim());
-            }
+            if(rawStr.trim() === "") { parsedValues = []; } 
+            else { parsedValues = rawStr.split(',').map(v => v.trim()); }
 
             const counter = document.getElementById('countNilai');
             counter.innerText = parsedValues.length;
-
-            // Indicator warna
-            if(parsedValues.length === MAPEL_WAJIB.length) {
-                counter.className = "font-bold text-green-400 text-sm";
-            } else if (parsedValues.length > MAPEL_WAJIB.length) {
-                counter.className = "font-bold text-orange-500 text-sm";
-            } else {
-                counter.className = "font-bold text-red-400 text-sm";
-            }
-
+            if(parsedValues.length === MAPEL_WAJIB.length) counter.className = "font-bold text-green-400 text-sm";
+            else if (parsedValues.length > MAPEL_WAJIB.length) counter.className = "font-bold text-orange-500 text-sm";
+            else counter.className = "font-bold text-red-400 text-sm";
+            
             renderPreview();
         }
 
@@ -379,8 +339,6 @@
                 let valStr = parsedValues[index];
                 let isExist = valStr !== undefined && valStr !== "";
                 let numVal = Number(valStr);
-                
-                // Cek Validasi individu
                 let isValid = isExist && !isNaN(numVal) && numVal >= 0 && numVal <= 100;
 
                 let statusBadge = '';
@@ -389,130 +347,87 @@
 
                 if (isExist) {
                     displayVal = valStr;
-                    if (isValid) {
-                        valueColor = numVal < 60 ? 'text-red-400 font-bold' : 'text-green-400 font-bold';
-                    } else {
+                    if (isValid) valueColor = numVal < 60 ? 'text-red-400 font-bold' : 'text-green-400 font-bold';
+                    else {
                         valueColor = 'text-red-500 font-bold bg-red-500/20 px-2 py-0.5 rounded';
                         statusBadge = '<i class="fa-solid fa-triangle-exclamation text-red-500 text-xs ml-2" title="Format Salah!"></i>';
                     }
                 }
 
-                let row = document.createElement('div');
-                row.className = "flex items-center justify-between p-2.5 border-b border-white/5 hover:bg-white/5 transition-colors rounded-lg";
-                row.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <span class="w-5 h-5 flex items-center justify-center rounded-full bg-white/10 text-[10px] text-gray-400 font-bold">${index + 1}</span>
-                        <span class="text-sm ${isExist ? 'text-gray-200' : 'text-gray-500'} font-medium truncate w-40 md:w-56" title="${mapel}">${mapel}</span>
-                    </div>
-                    <div class="flex items-center">
-                        <span class="text-base ${valueColor}">${displayVal}</span>
-                        ${statusBadge}
-                    </div>
-                `;
-                container.appendChild(row);
+                container.innerHTML += `
+                    <div class="flex items-center justify-between p-2.5 border-b border-white/5 hover:bg-white/5 transition-colors rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <span class="w-5 h-5 flex items-center justify-center rounded-full bg-white/10 text-[10px] text-gray-400 font-bold">${index + 1}</span>
+                            <span class="text-sm ${isExist ? 'text-gray-200' : 'text-gray-500'} font-medium truncate w-40 md:w-56" title="${mapel}">${mapel}</span>
+                        </div>
+                        <div class="flex items-center"><span class="text-base ${valueColor}">${displayVal}</span>${statusBadge}</div>
+                    </div>`;
             });
 
-            // Tampilkan warning di bawah jika array input lebih panjang dari 13
             if(parsedValues.length > MAPEL_WAJIB.length) {
                 let overFlow = parsedValues.length - MAPEL_WAJIB.length;
-                container.innerHTML += `
-                    <div class="p-3 mt-2 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs text-center font-medium">
-                        <i class="fa-solid fa-circle-exclamation mr-1"></i> Kelebihan ${overFlow} nilai yang tidak dikenali sistem.
-                    </div>
-                `;
+                container.innerHTML += `<div class="p-3 mt-2 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs text-center font-medium"><i class="fa-solid fa-circle-exclamation mr-1"></i> Kelebihan ${overFlow} nilai.</div>`;
             }
         }
 
         function resetForm() {
             document.getElementById('formInput').reset();
             document.getElementById('inputSemester').innerHTML = '<option value="" disabled selected>-- Pilih Kelas Dulu --</option>';
-            document.getElementById('inputNilaiMassal').value = "";
             handleMassalParsing({target: {value: ""}});
             showToast("Form dikosongkan.", "info");
         }
 
-        // --- SUBMIT DATA BATCH ---
         async function submitForm(e) {
             e.preventDefault();
+            if(parsedValues.length !== MAPEL_WAJIB.length) return showToast(`Harus pas ${MAPEL_WAJIB.length} nilai! (Sekarang: ${parsedValues.length})`, "error");
             
-            // 1. Validasi Jumlah Mapel
-            if(parsedValues.length !== MAPEL_WAJIB.length) {
-                showToast(`Gagal: Anda memasukkan ${parsedValues.length} nilai. Harus pas ${MAPEL_WAJIB.length} nilai!`, "error");
-                return;
-            }
-
-            // 2. Validasi Tipe Angka & Range
             for(let i=0; i<parsedValues.length; i++){
-                let v = parsedValues[i];
-                let num = Number(v);
-                if(v === "" || isNaN(num) || num < 0 || num > 100) {
-                    showToast(`Error: Nilai ke-${i+1} (${MAPEL_WAJIB[i]}) tidak valid. Harap isi angka 0-100.`, "error");
-                    return;
-                }
+                let num = Number(parsedValues[i]);
+                if(parsedValues[i] === "" || isNaN(num) || num < 0 || num > 100) return showToast(`Nilai ke-${i+1} tidak valid.`, "error");
             }
 
-            // 3. Bangun Struktur Records
             const btn = document.getElementById('btnSubmit');
             const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Menyimpan 13 Mapel...';
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Menyinkronkan...';
             btn.disabled = true;
 
-            const profil = {
+            let recordsToInsert = MAPEL_WAJIB.map((mapel, i) => ({
                 nama: document.getElementById('inputNama').value,
                 kelas: document.getElementById('inputKelas').value,
-                semester: document.getElementById('inputSemester').value
-            };
+                semester: document.getElementById('inputSemester').value,
+                mapel: mapel,
+                nilai: Number(parsedValues[i])
+            }));
 
-            let recordsToInsert = [];
-            for(let i=0; i<MAPEL_WAJIB.length; i++) {
-                recordsToInsert.push({
-                    nama: profil.nama,
-                    kelas: profil.kelas,
-                    semester: profil.semester,
-                    mapel: MAPEL_WAJIB[i],
-                    nilai: Number(parsedValues[i])
-                });
-            }
-
-            // 4. Tembak API
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: "POST",
                     headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({ records: recordsToInsert }) // Kirim Array Objects
+                    body: JSON.stringify({ records: recordsToInsert })
                 });
-                
                 const result = await response.json();
                 
                 if(result.success) {
-                    showToast(`Sukses menyimpan 13 Mapel untuk ${profil.nama}!`, "success");
+                    showToast("Sinkronisasi Update/Insert Berhasil!", "success");
                     resetForm();
                     fetchData();
                     switchTab('data');
-                } else {
-                    throw new Error(result.message);
-                }
-
+                } else throw new Error(result.message);
             } catch (error) {
-                console.error(error);
                 showToast("Gagal menyimpan: " + error.message, "error");
             } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
+                btn.innerHTML = originalText; btn.disabled = false;
             }
         }
 
-        // --- FETCH DATA & RENDER ---
         async function fetchData() {
             showLoading(true);
             try {
                 const response = await fetch(SCRIPT_URL);
                 const result = await response.json();
-                
                 if(result.success) {
                     appData = result.data || [];
                     filteredData = [...appData];
-                    
                     updateDashboardStats(result.stats);
                     renderTable();
                     renderCharts(result.stats);
@@ -526,11 +441,7 @@
 
         function filterTable() {
             const query = document.getElementById('searchData').value.toLowerCase();
-            filteredData = appData.filter(item => {
-                return item.nama.toLowerCase().includes(query) || 
-                       item.mapel.toLowerCase().includes(query) ||
-                       item.kelas.toLowerCase().includes(query);
-            });
+            filteredData = appData.filter(item => item.nama.toLowerCase().includes(query) || item.mapel.toLowerCase().includes(query) || item.kelas.toLowerCase().includes(query));
             currentPage = 1;
             renderTable();
         }
@@ -538,31 +449,34 @@
         function renderTable() {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
-            
             const start = (currentPage - 1) * rowsPerPage;
             const end = start + rowsPerPage;
             const paginatedData = filteredData.slice(start, end);
             
             if (paginatedData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-gray-400 italic">Data tidak ditemukan</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-gray-400 italic">Belum ada data rapot</td></tr>`;
                 updatePageInfo(); return;
             }
 
             paginatedData.forEach((row, index) => {
                 const d = new Date(row.timestamp);
-                const dateStr = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+                const dateStr = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth()+1).toString().padStart(2, '0')}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`;
                 
-                let gradeColor = row.nilai < 60 ? "text-red-400" : (row.nilai < 80 ? "text-orange-400" : "text-green-400");
+                // Color Logic Horizontal
+                let s1Color = row.s1 === "-" ? "text-gray-600" : (row.s1 < 60 ? "text-red-400" : "text-blue-400 font-medium");
+                let s2Color = row.s2 === "-" ? "text-gray-600" : (row.s2 < 60 ? "text-red-400" : "text-green-400 font-medium");
+                let rColor = row.rata < 60 ? "text-red-500 font-bold" : "text-purple-400 font-bold";
 
                 tbody.innerHTML += `
-                    <tr class="hover:bg-white/5 transition-colors">
+                    <tr class="hover:bg-white/5 transition-colors group">
                         <td class="p-4 text-center text-gray-400">${start + index + 1}</td>
-                        <td class="p-4 text-xs text-gray-400">${dateStr}</td>
-                        <td class="p-4 font-medium">${row.nama}</td>
-                        <td class="p-4 text-gray-300">${row.kelas}</td>
-                        <td class="p-4 text-gray-300">${row.semester}</td>
-                        <td class="p-4 text-brand-300">${row.mapel}</td>
-                        <td class="p-4 text-center font-bold ${gradeColor}">${row.nilai}</td>
+                        <td class="p-4 text-xs text-gray-500">${dateStr}</td>
+                        <td class="p-4 font-medium text-gray-200">${row.nama}</td>
+                        <td class="p-4 text-gray-400">${row.kelas}</td>
+                        <td class="p-4 text-brand-300 font-medium">${row.mapel}</td>
+                        <td class="p-4 text-center border-l border-white/5 bg-blue-900/10 group-hover:bg-blue-900/20 transition-colors ${s1Color}">${row.s1}</td>
+                        <td class="p-4 text-center bg-green-900/10 group-hover:bg-green-900/20 transition-colors ${s2Color}">${row.s2}</td>
+                        <td class="p-4 text-center bg-purple-900/10 group-hover:bg-purple-900/20 transition-colors border-l border-white/5 ${rColor}">${row.rata}</td>
                     </tr>
                 `;
             });
@@ -573,12 +487,10 @@
             const total = filteredData.length;
             const start = total === 0 ? 0 : ((currentPage - 1) * rowsPerPage) + 1;
             const end = Math.min(currentPage * rowsPerPage, total);
-            document.getElementById('pageInfo').innerHTML = `Menampilkan ${start} - ${end} dari ${total} data`;
+            document.getElementById('pageInfo').innerHTML = `Menampilkan ${start} - ${end} dari ${total} mapel`;
         }
-
         function changePage(dir) { currentPage += dir; renderTable(); }
 
-        // --- DASHBOARD CHARTS ---
         function updateDashboardStats(stats) {
             if(!stats) return;
             document.getElementById('statTotalData').innerText = stats.totalData || 0;
@@ -590,37 +502,36 @@
         function renderCharts(stats) {
             if(!stats || !stats.siswa || !stats.mapel) return;
             Chart.defaults.color = '#94a3b8'; Chart.defaults.font.family = 'Inter';
-            
-            const commonOpt = {
-                responsive: true, maintainAspectRatio: false,
-                scales: { y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255, 255, 255, 0.1)' }, border: { display: false } },
-                          x: { grid: { display: false }, border: { display: false } } },
-                plugins: { legend: { display: false } }
-            };
+            const commonOpt = { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255, 255, 255, 0.05)' }, border: { display: false } }, x: { grid: { display: false }, border: { display: false } } }, plugins: { legend: { display: false } } };
 
             const ctxSiswa = document.getElementById('chartSiswa').getContext('2d');
             if(charts.siswa) charts.siswa.destroy();
-            charts.siswa = new Chart(ctxSiswa, {
-                type: 'bar',
-                data: { labels: Object.keys(stats.siswa).map(n => n.split(' ')[0]), datasets: [{ data: Object.values(stats.siswa).map(s => s.avg), backgroundColor: '#6366f1', borderRadius: 4 }] },
-                options: commonOpt
-            });
+            charts.siswa = new Chart(ctxSiswa, { type: 'bar', data: { labels: Object.keys(stats.siswa).map(n => n.split(' ')[0]), datasets: [{ data: Object.values(stats.siswa).map(s => s.avg), backgroundColor: '#6366f1', borderRadius: 6 }] }, options: commonOpt });
 
             const ctxMapel = document.getElementById('chartMapel').getContext('2d');
             if(charts.mapel) charts.mapel.destroy();
-            charts.mapel = new Chart(ctxMapel, {
-                type: 'line',
-                data: { labels: Object.keys(stats.mapel).map(n => n.split(' ')[0]), datasets: [{ data: Object.values(stats.mapel).map(m => m.avg), borderColor: '#a855f7', backgroundColor: 'rgba(168, 85, 247, 0.1)', borderWidth: 3, fill: true, tension: 0.3 }] },
-                options: commonOpt
-            });
+            charts.mapel = new Chart(ctxMapel, { type: 'line', data: { labels: Object.keys(stats.mapel).map(n => n.split(' ')[0]), datasets: [{ data: Object.values(stats.mapel).map(m => m.avg), borderColor: '#a855f7', backgroundColor: 'rgba(168, 85, 247, 0.15)', borderWidth: 3, fill: true, tension: 0.4 }] }, options: commonOpt });
         }
 
         function exportExcel() {
             if(appData.length === 0) return showToast("Tidak ada data untuk diekspor", "info");
-            const excelData = appData.map((i, idx) => ({"No": idx + 1, "Waktu": new Date(i.timestamp).toLocaleString('id-ID'), "Siswa": i.nama, "Kelas": i.kelas, "Sem": i.semester, "Mapel": i.mapel, "Nilai": i.nilai}));
-            const ws = XLSX.utils.json_to_sheet(excelData); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data");
-            ws['!cols'] = [{wch: 5}, {wch: 20}, {wch: 25}, {wch: 10}, {wch: 12}, {wch: 25}, {wch: 8}];
-            XLSX.writeFile(wb, `Rekap_Nilai_${new Date().getTime()}.xlsx`);
+            
+            // Format Data Excel Sesuai Horizontal
+            const excelData = appData.map((i, idx) => ({
+                "No": idx + 1, 
+                "Nama Siswa": i.nama, 
+                "Kelas": i.kelas, 
+                "Mata Pelajaran": i.mapel, 
+                "Semester 1": i.s1, 
+                "Semester 2": i.s2, 
+                "Rata-rata": i.rata
+            }));
+            
+            const ws = XLSX.utils.json_to_sheet(excelData); 
+            const wb = XLSX.utils.book_new(); 
+            XLSX.utils.book_append_sheet(wb, ws, "Rapot");
+            ws['!cols'] = [{wch: 5}, {wch: 25}, {wch: 10}, {wch: 35}, {wch: 12}, {wch: 12}, {wch: 12}];
+            XLSX.writeFile(wb, `Rapot_Digital_${new Date().getTime()}.xlsx`);
         }
     </script>
 </body>
