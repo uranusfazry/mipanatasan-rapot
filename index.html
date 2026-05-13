@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduAdmin | Rapot Multi-Kelas</title>
+    <title>EduAdmin | Rapot Per Siswa</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
-            theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] }, colors: { brand: { 500: '#6366f1', 600: '#4f46e5' }, darkBg: '#0f172a', glassBg: 'rgba(30, 41, 59, 0.7)', glassBorder: 'rgba(255, 255, 255, 0.1)' } } }
+            theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] }, colors: { brand: { 500: '#6366f1', 600: '#4f46e5' }, darkBg: '#0f172a', glassBg: 'rgba(30, 41, 59, 0.8)', glassBorder: 'rgba(255, 255, 255, 0.1)' } } }
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -19,29 +19,28 @@
     <style>
         body { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); background-attachment: fixed; color: #f8fafc; min-height: 100vh; overflow-x: hidden; }
         .glass-panel { background: var(--glassBg); backdrop-filter: blur(12px); border: 1px solid var(--glassBorder); box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); }
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-        ::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 4px; }
         
-        /* Table Sticky Configurations */
-        .table-wrapper { max-height: calc(100vh - 250px); overflow: auto; }
+        .table-wrapper { max-height: calc(100vh - 280px); overflow: auto; }
         thead th { position: sticky; top: 0; z-index: 20; }
-        .sticky-col-1 { position: sticky; left: 0; z-index: 10; background: inherit; }
-        .sticky-col-2 { position: sticky; left: 160px; z-index: 10; background: inherit; border-right: 1px solid rgba(255,255,255,0.1); box-shadow: 5px 0 5px -5px rgba(0,0,0,0.5);}
-        thead .sticky-col-1, thead .sticky-col-2 { z-index: 30; }
+        .sticky-col { position: sticky; left: 0; z-index: 10; background: inherit; border-right: 1px solid rgba(255,255,255,0.1); box-shadow: 5px 0 5px -5px rgba(0,0,0,0.5);}
+        thead .sticky-col { z-index: 30; }
 
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
         .toast { animation: slideIn 0.3s ease forwards; }
         .toast.hide { animation: slideOut 0.3s ease forwards; }
-        .loader { border: 3px solid rgba(255,255,255,0.1); border-left-color: #6366f1; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .student-pill { transition: all 0.2s ease; }
+        .student-pill.active { background: #4f46e5; color: white; border-color: #6366f1; font-weight: bold; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4); }
     </style>
 </head>
 
 <body class="antialiased flex h-screen overflow-hidden text-sm">
 
-    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 glass-panel transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col border-r border-white/10">
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 glass-panel transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 flex flex-col border-r border-white/10">
         <div class="flex items-center justify-between p-6 border-b border-white/10">
             <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-500 to-purple-400">
                 <i class="fa-solid fa-graduation-cap mr-2 text-brand-500"></i>EduAdmin
@@ -49,72 +48,65 @@
             <button id="closeSidebar" class="md:hidden text-gray-400"><i class="fa-solid fa-xmark text-xl"></i></button>
         </div>
         <nav class="flex-1 p-4 space-y-2">
-            <a href="#" onclick="switchTab('dashboard')" id="nav-dashboard" class="flex items-center gap-3 w-full p-3 rounded-lg bg-brand-600/30 text-brand-400 border border-brand-500/30"><i class="fa-solid fa-chart-pie w-5"></i> Dashboard</a>
-            <a href="#" onclick="switchTab('input')" id="nav-input" class="flex items-center gap-3 w-full p-3 rounded-lg text-gray-300 hover:bg-white/5"><i class="fa-solid fa-keyboard w-5"></i> Input Nilai</a>
-            <a href="#" onclick="switchTab('data')" id="nav-data" class="flex items-center gap-3 w-full p-3 rounded-lg text-gray-300 hover:bg-white/5"><i class="fa-solid fa-table-columns w-5"></i> Database Rapot</a>
+            <a href="#" onclick="switchTab('dashboard')" id="nav-dashboard" class="flex items-center gap-3 w-full p-3 rounded-lg bg-brand-600/30 text-brand-400 border border-brand-500/30"><i class="fa-solid fa-chart-pie w-5"></i> Dashboard Statistik</a>
+            <a href="#" onclick="switchTab('input')" id="nav-input" class="flex items-center gap-3 w-full p-3 rounded-lg text-gray-300 hover:bg-white/5"><i class="fa-solid fa-keyboard w-5"></i> Input Nilai (Batch)</a>
+            <a href="#" onclick="switchTab('data')" id="nav-data" class="flex items-center gap-3 w-full p-3 rounded-lg text-gray-300 hover:bg-white/5"><i class="fa-solid fa-folder-open w-5"></i> Arsip Rapot Siswa</a>
         </nav>
     </aside>
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
-        <header class="h-16 glass-panel border-b border-white/10 flex items-center justify-between px-6 rounded-none">
+        <header class="h-16 glass-panel border-b border-white/10 flex items-center justify-between px-6">
             <button id="openSidebar" class="md:hidden text-gray-300"><i class="fa-solid fa-bars text-xl"></i></button>
             <div class="flex items-center gap-4 ml-auto">
-                <div class="hidden sm:flex items-center gap-2 text-xs text-gray-300 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
-                    <span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]"></span> Matrix System Active
+                <div class="hidden sm:flex items-center gap-2 text-xs text-brand-300 bg-brand-900/30 px-3 py-1.5 rounded-full border border-brand-500/20">
+                    <i class="fa-solid fa-server"></i> 1 Siswa = 1 Sheet Architecture
                 </div>
-                <button onclick="fetchData()" class="p-2 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 transition" title="Sync"><i class="fa-solid fa-rotate-right"></i></button>
+                <button onclick="fetchData()" class="p-2 rounded-full bg-white/5 hover:bg-white/10 text-gray-300 transition" title="Sync Data"><i class="fa-solid fa-rotate-right"></i></button>
             </div>
         </header>
 
         <div class="flex-1 overflow-y-auto p-4 md:p-6">
             
-            <!-- TAB: DASHBOARD -->
             <section id="tab-dashboard" class="space-y-6">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="glass-panel p-5 rounded-xl border-t-4 border-t-blue-500">
-                        <p class="text-gray-400 text-xs font-medium uppercase tracking-wider">Total Record DB</p>
-                        <h3 class="text-3xl font-bold mt-2" id="statTotalData">0</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="glass-panel p-5 rounded-xl border-l-4 border-l-blue-500">
+                        <p class="text-gray-400 text-xs font-medium uppercase tracking-wider">Siswa Terdaftar</p>
+                        <h3 class="text-3xl font-bold mt-2 text-white" id="statTotalSiswa">0</h3>
                     </div>
-                    <div class="glass-panel p-5 rounded-xl border-t-4 border-t-green-500">
-                        <p class="text-gray-400 text-xs font-medium uppercase tracking-wider">Rata-rata Akumulasi</p>
-                        <h3 class="text-3xl font-bold mt-2" id="statRataGlobal">0.00</h3>
+                    <div class="glass-panel p-5 rounded-xl border-l-4 border-l-green-500">
+                        <p class="text-gray-400 text-xs font-medium uppercase tracking-wider">Rata-rata Global Siswa</p>
+                        <h3 class="text-3xl font-bold mt-2 text-green-400" id="statRataGlobal">0.00</h3>
                     </div>
-                    <div class="glass-panel p-5 rounded-xl border-t-4 border-t-purple-500">
-                        <p class="text-gray-400 text-xs font-medium uppercase tracking-wider">Total Siswa Aktif</p>
-                        <h3 class="text-3xl font-bold mt-2" id="statTotalSiswa">0</h3>
-                    </div>
-                    <div class="glass-panel p-5 rounded-xl border-t-4 border-t-orange-500">
+                    <div class="glass-panel p-5 rounded-xl border-l-4 border-l-purple-500">
                         <p class="text-gray-400 text-xs font-medium uppercase tracking-wider">Mata Pelajaran</p>
-                        <h3 class="text-3xl font-bold mt-2" id="statTotalMapel">0</h3>
+                        <h3 class="text-3xl font-bold mt-2 text-white" id="statTotalMapel">13</h3>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="glass-panel p-5 rounded-xl flex flex-col h-[380px]">
-                        <h3 class="text-base font-semibold mb-4 text-gray-200">Rata-rata Final Siswa</h3>
+                        <h3 class="text-base font-semibold mb-4 text-gray-200">Statistik Rata-rata Per Siswa</h3>
                         <div class="flex-1 relative w-full"><canvas id="chartSiswa"></canvas></div>
                     </div>
                     <div class="glass-panel p-5 rounded-xl flex flex-col h-[380px]">
-                        <h3 class="text-base font-semibold mb-4 text-gray-200">Rata-rata Final Mapel</h3>
+                        <h3 class="text-base font-semibold mb-4 text-gray-200">Performa Rata-rata Mapel Global</h3>
                         <div class="flex-1 relative w-full"><canvas id="chartMapel"></canvas></div>
                     </div>
                 </div>
             </section>
 
-            <!-- TAB: INPUT -->
             <section id="tab-input" class="hidden max-w-6xl mx-auto w-full">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                    <div class="lg:col-span-7 glass-panel rounded-2xl p-6 relative overflow-hidden">
-                        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-500 to-purple-500"></div>
-                        <h2 class="text-xl font-bold mb-6">Penilaian (Mapping Otomatis)</h2>
+                    <div class="lg:col-span-7 glass-panel rounded-2xl p-6 relative overflow-hidden border-t border-t-brand-500">
+                        <h2 class="text-xl font-bold mb-6 text-white"><i class="fa-solid fa-bolt text-yellow-400 mr-2"></i> Input Nilai (Batch Auto-Update)</h2>
                         <form id="formInput" onsubmit="submitForm(event)" class="space-y-5">
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div class="md:col-span-3">
-                                    <label class="block text-xs font-medium text-gray-400 mb-1">Pilih Siswa</label>
-                                    <select id="inputNama" required class="w-full bg-darkBg/50 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand-500 appearance-none"><option value="" disabled selected>-- Pilih Siswa --</option></select>
+                                    <label class="block text-xs font-medium text-gray-400 mb-1">Pilih Siswa (Target Sheet)</label>
+                                    <select id="inputNama" required class="w-full bg-[#0f172a] border border-white/20 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand-500 outline-none"><option value="" disabled selected>-- Pilih Siswa --</option></select>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-medium text-gray-400 mb-1">Pilih Kelas</label>
-                                    <select id="inputKelas" required onchange="handleKelasChange()" class="w-full bg-darkBg/50 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand-500 appearance-none">
+                                    <label class="block text-xs font-medium text-gray-400 mb-1">Target Kelas</label>
+                                    <select id="inputKelas" required onchange="handleKelasChange()" class="w-full bg-[#0f172a] border border-white/20 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand-500 outline-none">
                                         <option value="" disabled selected>-- Pilih --</option>
                                         <option value="Kelas 4">Kelas 4</option>
                                         <option value="Kelas 5">Kelas 5</option>
@@ -122,46 +114,61 @@
                                     </select>
                                 </div>
                                 <div class="md:col-span-2">
-                                    <label class="block text-xs font-medium text-gray-400 mb-1">Pilih Semester</label>
-                                    <select id="inputSemester" required class="w-full bg-darkBg/50 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand-500 appearance-none"><option value="" disabled selected>-- Tunggu Kelas --</option></select>
+                                    <label class="block text-xs font-medium text-gray-400 mb-1">Target Semester</label>
+                                    <select id="inputSemester" required class="w-full bg-[#0f172a] border border-white/20 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-brand-500 outline-none"><option value="" disabled selected>-- Tunggu Kelas --</option></select>
                                 </div>
                             </div>
-                            <hr class="border-white/10 my-4">
-                            <div>
-                                <label class="block text-xs font-medium text-gray-400 mb-2">Tempel Array Nilai (13 Mapel dipisah koma)</label>
-                                <textarea id="inputNilaiMassal" rows="4" required placeholder="77, 77, 79, 80, 78, 84, 79, 80, 81, 80, 79, 85, 88" class="w-full bg-darkBg/50 border border-white/10 rounded-lg px-4 py-3 text-white font-mono tracking-widest focus:ring-2 focus:ring-brand-500"></textarea>
+                            
+                            <div class="bg-blue-900/20 border border-blue-500/30 p-3 rounded-lg flex items-start gap-3">
+                                <i class="fa-solid fa-circle-info text-blue-400 mt-0.5"></i>
+                                <p class="text-xs text-blue-200">Sistem akan menimpa/meng-update kolom <span class="font-bold text-white">Kelas & Semester</span> di atas pada sheet siswa yang dipilih. Row mapel tidak akan diduplikasi.</p>
                             </div>
-                            <button type="submit" id="btnSubmit" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-semibold py-3 rounded-lg shadow-lg transition-all"><i class="fa-solid fa-database mr-2"></i> Sinkronisasi Matrix Database</button>
+
+                            <div>
+                                <label class="block text-xs font-medium text-gray-400 mb-2 flex justify-between">
+                                    <span>Tempel 13 Nilai (Pisahkan dengan koma)</span>
+                                    <span id="countNilai" class="text-red-400 font-bold">0 / 13</span>
+                                </label>
+                                <textarea id="inputNilaiMassal" rows="4" required placeholder="77, 85, 90, 88..." class="w-full bg-[#0f172a] border border-white/20 rounded-lg px-4 py-3 text-white font-mono text-lg tracking-widest focus:ring-2 focus:ring-brand-500 outline-none"></textarea>
+                            </div>
+                            <button type="submit" id="btnSubmit" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-semibold py-3 rounded-lg shadow-lg transition-all"><i class="fa-solid fa-cloud-arrow-up mr-2"></i> Update Data Siswa</button>
                         </form>
                     </div>
 
                     <div class="lg:col-span-5 glass-panel rounded-2xl p-6 flex flex-col">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="font-bold text-gray-200">Live Mapping Mapel</h3>
-                            <span id="countNilai" class="bg-darkBg/50 px-2 py-1 rounded text-xs text-gray-400 border border-white/10">0 / 13</span>
-                        </div>
-                        <div class="bg-darkBg/30 rounded-lg border border-white/5 flex-1 p-2 overflow-y-auto" id="previewContainer"></div>
+                        <h3 class="font-bold text-gray-200 mb-4"><i class="fa-solid fa-eye text-brand-400 mr-2"></i> Preview Injeksi Data</h3>
+                        <div class="bg-[#0f172a] rounded-lg border border-white/10 flex-1 p-2 overflow-y-auto" id="previewContainer"></div>
                     </div>
                 </div>
             </section>
 
-            <!-- TAB: DATABASE RAPOT MULTI-KELAS -->
-            <section id="tab-data" class="hidden space-y-4">
-                <div class="glass-panel p-4 rounded-xl flex flex-col md:flex-row justify-between items-center gap-4">
-                    <h2 class="text-lg font-bold">Matrix Rapot Multi-Tahun</h2>
-                    <div class="flex items-center gap-3 w-full md:w-auto">
-                        <input type="text" id="searchData" onkeyup="filterTable()" placeholder="Cari Siswa/Mapel..." class="w-full md:w-64 bg-darkBg/50 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:border-brand-500 outline-none">
-                        <button onclick="exportExcel()" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap"><i class="fa-solid fa-file-excel mr-1"></i> Export Excel</button>
+            <section id="tab-data" class="hidden flex flex-col h-full gap-4">
+                <div class="glass-panel p-4 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div class="w-full overflow-x-auto pb-2 custom-scrollbar">
+                        <div class="flex gap-2 min-w-max px-1" id="studentPillContainer">
+                            <!-- Navigasi Siswa -->
+                        </div>
                     </div>
+                    <button onclick="exportExcelAll()" class="bg-green-600 hover:bg-green-500 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all whitespace-nowrap shadow-lg flex-shrink-0"><i class="fa-solid fa-file-excel mr-2"></i> Export Semua Sheet</button>
                 </div>
 
-                <div class="glass-panel rounded-xl overflow-hidden">
-                    <div class="table-wrapper">
-                        <table class="w-full text-left border-collapse whitespace-nowrap" id="dataTable">
+                <div class="glass-panel rounded-xl overflow-hidden flex-1 flex flex-col border border-white/10">
+                    <div class="p-4 bg-[#0f172a] border-b border-white/10 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-lg font-bold text-white flex items-center gap-2"><i class="fa-solid fa-user-graduate text-brand-400"></i> <span id="viewingStudentName">Nama Siswa</span></h2>
+                            <p class="text-xs text-gray-400 mt-1">Menampilkan data rapot dari Sheet khusus siswa ini.</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs text-gray-400">Rata-rata Akhir</p>
+                            <p class="text-2xl font-bold text-brand-400" id="viewingStudentAvg">0.00</p>
+                        </div>
+                    </div>
+                    <div class="table-wrapper flex-1">
+                        <table class="w-full text-left border-collapse whitespace-nowrap">
                             <thead>
                                 <tr class="text-xs uppercase tracking-wider text-gray-300">
-                                    <th class="p-3 bg-[#0f172a] sticky-col-1 w-[160px]">Nama Siswa</th>
-                                    <th class="p-3 bg-[#0f172a] sticky-col-2 w-[200px]">Mata Pelajaran</th>
+                                    <th class="p-3 bg-[#1e1b4b] text-center w-12 sticky top-0 z-30">No</th>
+                                    <th class="p-3 bg-[#1e1b4b] sticky-col w-[250px] sticky top-0 z-30">Mata Pelajaran</th>
                                     
                                     <th class="p-3 text-center bg-green-900/60 border-l border-white/10">Kls 4 (S1)</th>
                                     <th class="p-3 text-center bg-green-900/60">Kls 4 (S2)</th>
@@ -171,45 +178,107 @@
                                     
                                     <th class="p-3 text-center bg-purple-900/60 border-l border-white/10">Kls 6 (S1)</th>
                                     
-                                    <th class="p-3 text-center bg-[#0f172a] border-l border-white/10 text-brand-300 font-bold">Rata-rata</th>
+                                    <th class="p-3 text-center bg-[#082f49] border-l border-white/10 text-brand-300 font-bold">Rata-rata</th>
                                 </tr>
                             </thead>
                             <tbody id="tableBody" class="text-sm divide-y divide-white/5"></tbody>
                         </table>
-                    </div>
-                    <div class="p-3 border-t border-white/10 flex justify-between items-center bg-white/5">
-                        <span class="text-xs text-gray-400" id="pageInfo">Menampilkan 0 data</span>
-                        <div class="flex gap-2">
-                            <button onclick="changePage(-1)" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded disabled:opacity-50"><i class="fa-solid fa-chevron-left"></i></button>
-                            <button onclick="changePage(1)" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded disabled:opacity-50"><i class="fa-solid fa-chevron-right"></i></button>
-                        </div>
                     </div>
                 </div>
             </section>
         </div>
     </main>
 
-    <div id="loadingOverlay" class="fixed inset-0 bg-darkBg/80 backdrop-blur-sm z-[100] hidden flex-col items-center justify-center transition-opacity"><div class="loader mb-3"></div><p class="text-brand-400 font-medium animate-pulse text-sm">Menyelaraskan Matrix...</p></div>
+    <div id="loadingOverlay" class="fixed inset-0 bg-darkBg/90 backdrop-blur-md z-[100] hidden flex-col items-center justify-center transition-opacity">
+        <div class="w-16 h-16 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p class="text-brand-300 font-medium text-lg animate-pulse">Menghubungkan ke Google Sheets...</p>
+        <p class="text-xs text-gray-400 mt-2">Membaca 11 Sheet Database</p>
+    </div>
+    
     <div id="toastContainer" class="fixed bottom-6 right-6 z-[200] flex flex-col gap-3"></div>
 
     <script>
-        // MASUKAN URL BARU DISINI
+        // MASUKKAN URL DEPLOY BARU ANDA DI SINI
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyj0ak8R_EXOUMql4rDstg4QepH1GMwuwT7S4gqmroGACuoSsbqz5m4eU_MZL_IRhW2/exec";
         
         const SISWA = ["Adit Firmansyah", "Bilkis Cahya Nur Huda", "Fitri Reviani", "Fitri Yulianti", "Galang Rambu Anarkhi", "Muhammad Fajar Sidik", "Raffa Ardiansyah Dwi Putra", "Reza Nur Alamsyah", "Rival Andhika Putra", "Satria Permana", "Yesy Fuadah"];
         const MAPEL_WAJIB = ["Al Qur'an Hadis", "Akidah Akhlak", "Fikih", "Sejarah Kebudayaan Islam", "Bahasa Arab", "Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "Ilmu Pengetahuan Alam dan Sosial", "Pendidikan Jasmani, Olahraga dan Kesehatan", "Seni Budaya dan Prakarya", "Bahasa Inggris", "Bahasa Sunda"];
 
-        let appData = [], filteredData = [], currentPage = 1, rowsPerPage = 20;
-        let charts = { siswa: null, mapel: null };
+        let globalData = {}; // Object untuk menampung array per siswa
+        let globalStats = null;
+        let activeStudentView = SISWA[0];
         let parsedValues = [];
+        let charts = { siswa: null, mapel: null };
 
         document.addEventListener('DOMContentLoaded', () => {
-            SISWA.forEach(n => document.getElementById('inputNama').appendChild(new Option(n, n)));
+            const inputNama = document.getElementById('inputNama');
+            const pillContainer = document.getElementById('studentPillContainer');
+            
+            SISWA.forEach(n => {
+                inputNama.appendChild(new Option(n, n));
+                // Build pills navigation
+                let pill = document.createElement('button');
+                pill.className = `student-pill px-4 py-2 rounded-full text-xs border border-white/20 bg-white/5 hover:bg-white/10 text-gray-300 truncate max-w-[150px]`;
+                pill.innerText = n.split(' ')[0] + ' ' + (n.split(' ')[1] ? n.split(' ')[1][0]+'.' : '');
+                pill.onclick = () => loadStudentView(n);
+                pill.id = `pill-${n.replace(/\s+/g, '-')}`;
+                pillContainer.appendChild(pill);
+            });
+
             document.getElementById('openSidebar').onclick = () => document.getElementById('sidebar').classList.remove('-translate-x-full');
             document.getElementById('closeSidebar').onclick = () => document.getElementById('sidebar').classList.add('-translate-x-full');
             document.getElementById('inputNilaiMassal').addEventListener('input', handleMassalParsing);
-            initPreviewList(); fetchData();
+            
+            initPreviewList(); 
+            fetchData();
         });
+
+        function switchTab(id) {
+            ['dashboard', 'input', 'data'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`nav-${t}`).classList.remove('bg-brand-600/30', 'text-brand-400', 'border', 'border-brand-500/30');
+            });
+            document.getElementById(`tab-${id}`).classList.remove('hidden');
+            document.getElementById(`nav-${id}`).classList.add('bg-brand-600/30', 'text-brand-400', 'border', 'border-brand-500/30');
+            if(window.innerWidth < 768) document.getElementById('sidebar').classList.add('-translate-x-full');
+            
+            if(id === 'dashboard' && charts.siswa) { charts.siswa.resize(); charts.mapel.resize(); }
+            if(id === 'data') loadStudentView(activeStudentView);
+        }
+
+        function loadStudentView(nama) {
+            activeStudentView = nama;
+            
+            // Update Pills UI
+            document.querySelectorAll('.student-pill').forEach(el => el.classList.remove('active'));
+            const activePill = document.getElementById(`pill-${nama.replace(/\s+/g, '-')}`);
+            if(activePill) {
+                activePill.classList.add('active');
+                activePill.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+
+            document.getElementById('viewingStudentName').innerText = nama;
+            
+            if(!globalData[nama]) {
+                document.getElementById('tableBody').innerHTML = `<tr><td colspan="8" class="p-8 text-center text-gray-500">Data belum tersedia / error sinkronisasi.</td></tr>`;
+                document.getElementById('viewingStudentAvg').innerText = "0.00";
+                return;
+            }
+
+            // Update Average text
+            const studentAvg = globalStats && globalStats.siswa[nama] ? globalStats.siswa[nama].avg : 0;
+            document.getElementById('viewingStudentAvg').innerText = studentAvg.toFixed(2);
+
+            renderTable(globalData[nama]);
+        }
+
+        function showToast(m, t='success') {
+            const c = document.getElementById('toastContainer'), el = document.createElement('div');
+            el.className = `toast glass-panel border-l-4 p-4 rounded flex items-center gap-3 w-80 shadow-2xl ${t==='error'?'border-red-500 text-red-400':(t==='info'?'border-blue-500 text-blue-400':'border-green-500 text-green-400')}`;
+            el.innerHTML = `<i class="fa-solid fa-${t==='error'?'circle-xmark':(t==='info'?'info-circle':'check-circle')}"></i><p class="text-sm text-white">${m}</p>`;
+            c.appendChild(el); setTimeout(() => { el.classList.add('hide'); setTimeout(()=>el.remove(),300); }, 3500);
+        }
+        function showLoading(s) { document.getElementById('loadingOverlay').style.display = s ? 'flex' : 'none'; }
 
         function handleKelasChange() {
             const k = document.getElementById('inputKelas').value;
@@ -220,31 +289,14 @@
             for(let i=1; i<=max; i++) s.appendChild(new Option(`Semester ${i}`, `Semester ${i}`));
         }
 
-        function switchTab(id) {
-            ['dashboard', 'input', 'data'].forEach(t => {
-                document.getElementById(`tab-${t}`).classList.add('hidden');
-                document.getElementById(`nav-${t}`).classList.remove('bg-brand-600/30', 'text-brand-400', 'border', 'border-brand-500/30');
-            });
-            document.getElementById(`tab-${id}`).classList.remove('hidden');
-            document.getElementById(`nav-${id}`).classList.add('bg-brand-600/30', 'text-brand-400', 'border', 'border-brand-500/30');
-            if(window.innerWidth < 768) document.getElementById('sidebar').classList.add('-translate-x-full');
-            if(id === 'dashboard' && charts.siswa) { charts.siswa.resize(); charts.mapel.resize(); }
-        }
-
-        function showToast(m, t='success') {
-            const c = document.getElementById('toastContainer'), el = document.createElement('div');
-            el.className = `toast glass-panel border-l-4 p-4 rounded flex items-center gap-3 w-80 ${t==='error'?'border-red-500 text-red-400':(t==='info'?'border-blue-500 text-blue-400':'border-green-500 text-green-400')}`;
-            el.innerHTML = `<i class="fa-solid fa-${t==='error'?'circle-xmark':(t==='info'?'info-circle':'check-circle')}"></i><p class="text-sm text-white">${m}</p>`;
-            c.appendChild(el); setTimeout(() => { el.classList.add('hide'); setTimeout(()=>el.remove(),300); }, 3500);
-        }
-        function showLoading(s) { document.getElementById('loadingOverlay').style.display = s ? 'flex' : 'none'; }
-
         function handleMassalParsing(e) {
-            let val = e.target.value.trim();
-            parsedValues = val ? val.split(',').map(v => v.trim()) : [];
+            let val = e.target.value;
+            let rawArr = val.split(',').map(v => v.trim()).filter(v => v !== "");
+            parsedValues = rawArr;
+            
             const c = document.getElementById('countNilai');
             c.innerText = `${parsedValues.length} / 13`;
-            c.className = `px-2 py-1 rounded text-xs font-bold border border-white/10 ${parsedValues.length===13?'bg-green-500/20 text-green-400':(parsedValues.length>13?'bg-orange-500/20 text-orange-400':'bg-red-500/20 text-red-400')}`;
+            c.className = `font-bold ${parsedValues.length===13?'text-green-400':(parsedValues.length>13?'text-orange-400':'text-red-400')}`;
             renderPreview();
         }
 
@@ -259,63 +311,86 @@
                     valStr = v;
                     cls = (!isNaN(num) && num>=0 && num<=100) ? (num<60?'text-red-400 font-bold':'text-green-400 font-bold') : 'text-red-500 bg-red-500/20 px-1 rounded';
                 }
-                html += `<div class="flex justify-between p-2 border-b border-white/5"><span class="text-xs text-gray-300 truncate w-48">${i+1}. ${m}</span><span class="text-sm ${cls}">${valStr}</span></div>`;
+                html += `<div class="flex justify-between items-center p-2.5 border-b border-white/5 hover:bg-white/5 transition"><span class="text-xs text-gray-300 truncate w-48">${i+1}. ${m}</span><span class="text-sm ${cls} font-mono bg-black/20 px-2 py-0.5 rounded">${valStr}</span></div>`;
             });
             document.getElementById('previewContainer').innerHTML = html;
         }
 
         async function submitForm(e) {
             e.preventDefault();
-            if(parsedValues.length !== 13) return showToast("Harus pas 13 nilai mapel!", "error");
-            if(parsedValues.some(v => isNaN(Number(v)) || Number(v)<0 || Number(v)>100 || v==="")) return showToast("Terdapat nilai tidak valid (harus angka 0-100)", "error");
+            if(parsedValues.length !== 13) return showToast("Harus pas 13 nilai untuk 13 mata pelajaran!", "error");
+            if(parsedValues.some(v => isNaN(Number(v)) || Number(v)<0 || Number(v)>100)) return showToast("Ada nilai tidak valid (harus angka 0-100)", "error");
 
-            const btn = document.getElementById('btnSubmit'); btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...'; btn.disabled = true;
+            const nama = document.getElementById('inputNama').value;
+            const kelas = document.getElementById('inputKelas').value;
+            const sem = document.getElementById('inputSemester').value;
+
+            const btn = document.getElementById('btnSubmit'); 
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Mengupdate Sheet...'; 
+            btn.disabled = true; btn.classList.add('opacity-70');
             
+            // Build Array for Backend (Target 1 student, 1 column)
             const payload = MAPEL_WAJIB.map((m, i) => ({
-                nama: document.getElementById('inputNama').value, kelas: document.getElementById('inputKelas').value,
-                semester: document.getElementById('inputSemester').value, mapel: m, nilai: parsedValues[i]
+                nama: nama, kelas: kelas, semester: sem, mapel: m, nilai: parsedValues[i]
             }));
 
             try {
                 const res = await fetch(SCRIPT_URL, { method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify({records: payload}) });
                 const json = await res.json();
-                if(json.success) { showToast("Data Matrix berhasil disimpan!", "success"); document.getElementById('formInput').reset(); handleMassalParsing({target:{value:''}}); fetchData(); switchTab('data'); }
+                if(json.success) { 
+                    showToast(`Data tersimpan ke sheet ${nama}`, "success"); 
+                    document.getElementById('formInput').reset(); 
+                    document.getElementById('inputNilaiMassal').value = '';
+                    handleMassalParsing({target:{value:''}}); 
+                    
+                    // Auto switch ke tab data dan load siswa tersebut
+                    activeStudentView = nama;
+                    await fetchData(); 
+                    switchTab('data'); 
+                }
                 else throw new Error(json.message);
             } catch (err) { showToast(err.message, "error"); }
-            finally { btn.innerHTML = '<i class="fa-solid fa-database mr-2"></i> Sinkronisasi Matrix Database'; btn.disabled = false; }
+            finally { 
+                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-2"></i> Update Data Siswa'; 
+                btn.disabled = false; btn.classList.remove('opacity-70');
+            }
         }
 
         async function fetchData() {
             showLoading(true);
             try {
-                const res = await fetch(SCRIPT_URL); const json = await res.json();
-                if(json.success) { appData = json.data||[]; filteredData = [...appData]; updateStats(json.stats); renderTable(); renderCharts(json.stats); }
-            } catch (err) { showToast("Gagal fetch data backend.", "error"); } finally { showLoading(false); }
-        }
-
-        function filterTable() {
-            const q = document.getElementById('searchData').value.toLowerCase();
-            filteredData = appData.filter(i => i.nama.toLowerCase().includes(q) || i.mapel.toLowerCase().includes(q));
-            currentPage = 1; renderTable();
+                const res = await fetch(SCRIPT_URL); 
+                const json = await res.json();
+                if(json.success) { 
+                    globalData = json.data || {}; 
+                    globalStats = json.stats;
+                    
+                    updateDashboardStats(json.stats); 
+                    renderCharts(json.stats);
+                    
+                    if(document.getElementById('tab-data').classList.contains('hidden') === false) {
+                        loadStudentView(activeStudentView); // refresh active view
+                    }
+                }
+            } catch (err) { showToast("Gagal mengambil data dari Google Sheets.", "error"); } 
+            finally { showLoading(false); }
         }
 
         function formatVal(val) { return (val === "" || val === null) ? "-" : val; }
-        function getColor(val) { if(val === "" || val === null || val === "-") return "text-gray-600"; return Number(val) < 60 ? "text-red-400" : "text-gray-200"; }
+        function getColor(val) { if(val === "" || val === null || val === "-") return "text-gray-600"; return Number(val) < 60 ? "text-red-400 font-bold" : "text-gray-200"; }
 
-        function renderTable() {
-            const tbody = document.getElementById('tableBody'); tbody.innerHTML = '';
-            const start = (currentPage-1)*rowsPerPage, data = filteredData.slice(start, start+rowsPerPage);
-            if(!data.length) { tbody.innerHTML = `<tr><td colspan="10" class="p-8 text-center text-gray-500 italic">Data Matrix Kosong</td></tr>`; return; }
-
+        function renderTable(dataArray) {
+            const tbody = document.getElementById('tableBody'); 
             let html = '';
-            data.forEach((r, i) => {
+            
+            dataArray.forEach((r) => {
                 const c = (v) => getColor(v);
                 const f = (v) => formatVal(v);
                 
                 html += `
                 <tr class="group hover:bg-white/5 transition-colors bg-[#0f172a]">
-                    <td class="p-3 sticky-col-1 text-gray-300 font-medium truncate max-w-[160px]" title="${r.nama}">${r.nama}</td>
-                    <td class="p-3 sticky-col-2 text-brand-400 text-xs truncate max-w-[200px]" title="${r.mapel}">${r.mapel}</td>
+                    <td class="p-3 text-center text-gray-500">${r.no}</td>
+                    <td class="p-3 sticky-col text-brand-400 text-xs font-medium truncate max-w-[250px] group-hover:text-brand-300" title="${r.mapel}">${r.mapel}</td>
                     
                     <td class="p-3 text-center border-l border-white/5 bg-green-900/10 group-hover:bg-green-900/20 ${c(r.k4s1)}">${f(r.k4s1)}</td>
                     <td class="p-3 text-center bg-green-900/10 group-hover:bg-green-900/20 ${c(r.k4s2)}">${f(r.k4s2)}</td>
@@ -325,18 +400,15 @@
                     
                     <td class="p-3 text-center border-l border-white/5 bg-purple-900/10 group-hover:bg-purple-900/20 ${c(r.k6s1)}">${f(r.k6s1)}</td>
                     
-                    <td class="p-3 text-center border-l border-white/5 bg-[#0f172a] text-brand-300 font-bold ${r.rata<60?'text-red-500':''}">${f(r.rata)}</td>
+                    <td class="p-3 text-center border-l border-white/5 bg-[#082f49] text-brand-300 font-bold ${r.rata>0 && r.rata<60?'text-red-500':''}">${f(r.rata)}</td>
                 </tr>`;
             });
             tbody.innerHTML = html;
-            document.getElementById('pageInfo').innerText = `Menampilkan ${start+1}-${Math.min(start+rowsPerPage, filteredData.length)} dari ${filteredData.length} records`;
         }
 
-        function changePage(d) { currentPage += d; renderTable(); }
-
-        function updateStats(s) {
-            document.getElementById('statTotalData').innerText = s.totalData||0; document.getElementById('statRataGlobal').innerText = s.rataRataGlobal||"0.00";
-            document.getElementById('statTotalSiswa').innerText = s.siswa ? Object.keys(s.siswa).length : 0; document.getElementById('statTotalMapel').innerText = s.mapel ? Object.keys(s.mapel).length : 0;
+        function updateDashboardStats(s) {
+            document.getElementById('statTotalSiswa').innerText = s.totalSiswa || 0; 
+            document.getElementById('statRataGlobal').innerText = s.rataRataGlobal || "0.00";
         }
 
         function renderCharts(s) {
@@ -345,18 +417,39 @@
             const opt = { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.05)'}, border:{display:false}}, x: { grid:{display:false}, border:{display:false} } }, plugins: { legend: { display: false } } };
             
             if(charts.siswa) charts.siswa.destroy();
-            charts.siswa = new Chart(document.getElementById('chartSiswa').getContext('2d'), { type: 'bar', data: { labels: Object.keys(s.siswa).map(n=>n.split(' ')[0]), datasets: [{ data: Object.values(s.siswa).map(v=>v.avg), backgroundColor: '#6366f1', borderRadius: 4 }] }, options: opt });
+            charts.siswa = new Chart(document.getElementById('chartSiswa').getContext('2d'), { type: 'bar', data: { labels: Object.keys(s.siswa).map(n=>n.split(' ')[0]), datasets: [{ data: Object.values(s.siswa).map(v=>v.avg), backgroundColor: '#4f46e5', borderRadius: 4, hoverBackgroundColor: '#6366f1' }] }, options: opt });
             
             if(charts.mapel) charts.mapel.destroy();
-            charts.mapel = new Chart(document.getElementById('chartMapel').getContext('2d'), { type: 'line', data: { labels: Object.keys(s.mapel).map(n=>n.split(' ')[0]), datasets: [{ data: Object.values(s.mapel).map(v=>v.avg), borderColor: '#a855f7', backgroundColor: 'rgba(168, 85, 247, 0.1)', fill: true, tension: 0.4 }] }, options: opt });
+            charts.mapel = new Chart(document.getElementById('chartMapel').getContext('2d'), { type: 'line', data: { labels: Object.keys(s.mapel).map(n=>n.split(' ')[0]), datasets: [{ data: Object.values(s.mapel).map(v=>v.avg), borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', fill: true, tension: 0.4, pointBackgroundColor: '#10b981' }] }, options: opt });
         }
 
-        function exportExcel() {
-            if(!appData.length) return showToast("Data kosong", "info");
-            const d = appData.map(i => ({ "Nama Siswa": i.nama, "Mata Pelajaran": i.mapel, "Kelas 4 S1": i.k4s1, "Kelas 4 S2": i.k4s2, "Kelas 5 S1": i.k5s1, "Kelas 5 S2": i.k5s2, "Kelas 6 S1": i.k6s1, "Rata-rata": i.rata }));
-            const ws = XLSX.utils.json_to_sheet(d), wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Matrix Rapot");
-            ws['!cols'] = [{wch: 25}, {wch: 35}, {wch: 12},{wch: 12},{wch: 12},{wch: 12},{wch: 12}, {wch: 15}];
-            XLSX.writeFile(wb, `Rapot_MultiTahun_${Date.now()}.xlsx`);
+        function exportExcelAll() {
+            if(Object.keys(globalData).length === 0) return showToast("Data kosong", "info");
+            
+            const wb = XLSX.utils.book_new();
+            
+            SISWA.forEach(nama => {
+                if(globalData[nama]) {
+                    const formattedData = globalData[nama].map(i => ({
+                        "No": i.no,
+                        "Mata Pelajaran": i.mapel,
+                        "Kelas 4 S1": i.k4s1, "Kelas 4 S2": i.k4s2,
+                        "Kelas 5 S1": i.k5s1, "Kelas 5 S2": i.k5s2,
+                        "Kelas 6 S1": i.k6s1,
+                        "Rata-rata": i.rata
+                    }));
+                    
+                    const ws = XLSX.utils.json_to_sheet(formattedData);
+                    ws['!cols'] = [{wch: 5}, {wch: 40}, {wch: 12},{wch: 12},{wch: 12},{wch: 12},{wch: 12}, {wch: 15}];
+                    
+                    // Batas nama sheet max 31 char
+                    let safeSheetName = nama.substring(0, 31).replace(/[\\/?*\[\]]/g, '');
+                    XLSX.utils.book_append_sheet(wb, ws, safeSheetName);
+                }
+            });
+            
+            XLSX.writeFile(wb, `Rapot_Semua_Siswa_${Date.now()}.xlsx`);
+            showToast("Export berhasil! Semua 11 Sheet telah di-export.");
         }
     </script>
 </body>
